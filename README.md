@@ -16,9 +16,9 @@ integrated into a C program as a command interpreter or extension
 langauge, and is easily extended in C with new primitive types,
 primitve functions and syntax.
 
-See BUGS for known bugs.
-See INSTALL for installation information.
-See COPYING for copyright information.
-See TODO for possible projects.
-See EXTENSIONS for extensions beyond R4RS.
-See USING for information on using libscheme in a project.
+* See BUGS for known bugs.
+* See INSTALL for installation information.
+* See COPYING for copyright information.
+* See TODO for possible projects.
+* See EXTENSIONS for extensions beyond R4RS.
+* See USING for information on using libscheme in a project.
