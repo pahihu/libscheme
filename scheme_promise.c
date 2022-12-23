@@ -66,6 +66,7 @@ static Scheme_Object *
 force (int argc, Scheme_Object *argv[])
 {
   Scheme_Promise *promise;
+  Scheme_Object  *obj;
 
   SCHEME_ASSERT ((argc == 1), "force: wrong number of args");
   SCHEME_ASSERT (SCHEME_PROMP(argv[0]), "force: arg must be a promise");
@@ -76,7 +77,13 @@ force (int argc, Scheme_Object *argv[])
     }
   else
     {
-      promise->val = scheme_eval (promise->val, promise->env);
+      obj = scheme_eval (promise->val, promise->env);
+      if (promise->forced)
+        {
+          return (promise->val);
+        }
+      promise->forced = 1;
+      promise->val    = obj;
       return (promise->val);
     }
 }
