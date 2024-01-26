@@ -5,12 +5,12 @@
 #
 # This must be an ANSI C compiler.
 #
-CC=gcc
+CC=gcc -flto
 
 #
 # Optimization and debugging flags go here.
 #
-CFLAGS=-DGC_THREADS -Os
+CFLAGS=-DGC_THREADS -O3 -fomit-frame-pointer
 
 #
 # The math library is needed for the numeric functions
@@ -43,7 +43,8 @@ OBJS =  scheme_alloc.o \
 	scheme_symbol.o \
 	scheme_syntax.o \
 	scheme_type.o \
-	scheme_vector.o
+	scheme_vector.o \
+	user.o
 
 SRCS =  scheme_alloc.c \
 	scheme_bool.c \
@@ -64,7 +65,8 @@ SRCS =  scheme_alloc.c \
 	scheme_symbol.c \
 	scheme_syntax.c \
 	scheme_type.c \
-	scheme_vector.c
+	scheme_vector.c \
+	user.c
 
 libscheme.a: $(OBJS) gc/gc.a
 	$(AR) rv libscheme.a $(OBJS) gc/*.o

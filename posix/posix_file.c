@@ -64,6 +64,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -71,11 +72,14 @@
 /* variables */
 static Scheme_Object *posix_stat_type;
 static Scheme_Object *posix_dir_type;
+static int posix_errno_value;
 
 /* functions */
 static Scheme_Object *make_stat_object (struct stat *s);
 static Scheme_Object *make_dir_object (DIR *dirp);
 
+static Scheme_Object *posix_errno (int argc, Scheme_Object *argv[]);
+static Scheme_Object *posix_strerror (int argc, Scheme_Object *argv[]);
 static Scheme_Object *posix_getcwd (int argc, Scheme_Object *argv[]);
 static Scheme_Object *posix_chdir (int argc, Scheme_Object *argv[]);
 static Scheme_Object *posix_mkdir (int argc, Scheme_Object *argv[]);
@@ -127,11 +131,15 @@ static Scheme_Object *stat_mtime (int argc, Scheme_Object *argv[]);
 void
 init_posix_file (Scheme_Env *env)
 {
+  posix_errno_value = 0;
+
   /* types */
   posix_stat_type = scheme_make_type ("<stat>");
   posix_dir_type = scheme_make_type ("<dir>");
 
   /* functions */
+  scheme_add_global("posix-errno", scheme_make_prim (posix_errno), env);
+  scheme_add_global("posix-strerror", scheme_make_prim (posix_strerror), env);
   scheme_add_global("posix-getcwd", scheme_make_prim (posix_getcwd), env);
   scheme_add_global("posix-chdir", scheme_make_prim (posix_chdir), env);
   scheme_add_global("posix-mkdir", scheme_make_prim (posix_mkdir), env);
@@ -253,9 +261,29 @@ posix_getcwd (int argc, Scheme_Object *argv[])
   SCHEME_ASSERT ((argc == 0), "posix-getcwd: wrong number of arguments");
   if (getcwd (buf, PATH_MAX) == 0)
     {
-      scheme_signal_error ("posix-getcwd: failed");
+      /* scheme_signal_error ("posix-getcwd: failed"); */
+      posix_errno_value = errno;
+      buf[0] = '\0';
     }
   return (scheme_make_string (buf));
+}
+
+static Scheme_Object *
+posix_errno (int argc, Scheme_Object *argv[])
+{
+  SCHEME_ASSERT ((argc == 0), "posix-errno: wrong number of arguments");
+  return (scheme_make_integer (posix_errno_value));
+}
+
+static Scheme_Object *
+posix_strerror (int argc, Scheme_Object *argv[])
+{
+  int errnum;
+
+  SCHEME_ASSERT ((argc == 1), "posix-strerror: wrong number of arguments");
+  SCHEME_ASSERT (SCHEME_INTP(argv[0]), "posix-strerror: arg must be integer");
+  errnum = SCHEME_INT_VAL (argv[0]);
+  return (scheme_make_string (strerror(errnum)));
 }
 
 static Scheme_Object *
@@ -268,7 +296,9 @@ posix_chdir (int argc, Scheme_Object *argv[])
   path = SCHEME_STR_VAL (argv[0]);
   if (chdir (path) == -1)
     {
-      scheme_signal_error ("posix-chdir: could not change directory to `%s'", path);
+      /* scheme_signal_error ("posix-chdir: could not change directory to `%s'", path); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -302,7 +332,9 @@ posix_mkdir (int argc, Scheme_Object *argv[])
   if (mkdir (path, mode) != 0)
 #endif
     {
-      scheme_signal_error ("posix-mkdir: could not make directory: %s", path);
+      /* scheme_signal_error ("posix-mkdir: could not make directory: %s", path); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -317,7 +349,9 @@ posix_rmdir (int argc, Scheme_Object *argv[])
   path = SCHEME_STR_VAL (argv[0]);
   if (rmdir (path) != 0)
     {
-      scheme_signal_error ("posix-rmdir: could not remove directory: %s", path);
+      /* scheme_signal_error ("posix-rmdir: could not remove directory: %s", path); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -333,7 +367,9 @@ posix_unlink (int argc, Scheme_Object *argv[])
   path = SCHEME_STR_VAL (argv[0]);
   if (unlink (path) == -1)
     {
-      scheme_signal_error ("posix-unlink: could not remove link: %s", path);
+      /* scheme_signal_error ("posix-unlink: could not remove link: %s", path); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -350,7 +386,9 @@ posix_rename (int argc, Scheme_Object *argv[])
   new = SCHEME_STR_VAL (argv[1]);
   if (rename (old, new) == -1)
     {
-      scheme_signal_error ("posix-rename: could not rename file from `%s' to `%s'", old, new);
+      /* scheme_signal_error ("posix-rename: could not rename file from `%s' to `%s'", old, new); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -367,7 +405,9 @@ posix_stat (int argc, Scheme_Object *argv[])
   s = scheme_malloc (sizeof (struct stat));
   if (stat (path, s) != 0)
     {
-      scheme_signal_error ("posix-stat: could not stat file: %s", path);
+      /* scheme_signal_error ("posix-stat: could not stat file: %s", path); */
+      posix_errno_value = errno;
+      return (scheme_null);
     }
   return (make_stat_object (s));
 }
@@ -404,7 +444,9 @@ posix_opendir (int argc, Scheme_Object *argv[])
   name = SCHEME_STR_VAL (argv[0]);
   if ((dirp = opendir (name)) == NULL)
     {
-      scheme_signal_error ("posix-opendir: could not open directory: %s", name);
+      /* scheme_signal_error ("posix-opendir: could not open directory: %s", name); */
+      posix_errno_value = errno;
+      return (scheme_null);
     }
   return (make_dir_object (dirp));
 }
@@ -469,7 +511,8 @@ posix_open (int argc, Scheme_Object *argv[])
   fd = open (path, oflag);
   if (fd == -1)
     {
-      scheme_signal_error ("posix-open: could not open file: %s", path);
+      /* scheme_signal_error ("posix-open: could not open file: %s", path); */
+      posix_errno_value = errno;
     }
   return (scheme_make_integer (fd));
 }
@@ -489,7 +532,8 @@ posix_read (int argc, Scheme_Object *argv[])
   str = scheme_alloc_string (num_bytes, '\0');
   if (read (fd, SCHEME_STR_VAL(str), num_bytes) == -1)
     {
-      scheme_signal_error ("posix-read: could not read from file descriptor %d", fd);
+      /* scheme_signal_error ("posix-read: could not read from file descriptor %d", fd); */
+      posix_errno_value = errno;
     }
   return (str);
 }
@@ -508,7 +552,9 @@ posix_write (int argc, Scheme_Object *argv[])
   len = strlen (str);
   if (write (fd, str, len) == -1)
     {
-      scheme_signal_error ("posix-write: could not write to descriptor %d", fd);
+      /* scheme_signal_error ("posix-write: could not write to descriptor %d", fd); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -542,7 +588,8 @@ posix_dup (int argc, Scheme_Object *argv[])
   res = dup (fd);
   if (res == -1)
     {
-      scheme_signal_error ("posix-dup: could not dup file descriptor %d", fd);
+      /* scheme_signal_error ("posix-dup: could not dup file descriptor %d", fd); */
+      posix_errno_value = errno;
     }
   return (scheme_make_integer (res));
 }
@@ -557,7 +604,9 @@ posix_close (int argc, Scheme_Object *argv[])
   fd = SCHEME_INT_VAL (argv[0]);
   if (close (fd) != 0)
     {
-      scheme_signal_error ("posix-close: could not close descriptor: %d", fd);
+      /* scheme_signal_error ("posix-close: could not close descriptor: %d", fd); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -698,7 +747,9 @@ posix_link (int argc, Scheme_Object *argv[])
   new = SCHEME_STR_VAL (argv[1]);
   if (link (old, new) == -1)
     {
-      scheme_signal_error ("posix-link: could not link %s to %s", old, new);
+      /* scheme_signal_error ("posix-link: could not link %s to %s", old, new); */
+      posix_errno_value = errno;
+      return (scheme_false);
     }
   return (scheme_true);
 }
@@ -735,7 +786,9 @@ posix_pipe (int argc, Scheme_Object *argv[])
   SCHEME_ASSERT ((argc == 0), "posix-pipe: wrong number of args");
   if (pipe (fd) != 0)
     {
-      scheme_signal_error ("posix-pipe: could not create pipe");
+      /* scheme_signal_error ("posix-pipe: could not create pipe"); */
+      posix_errno_value = errno;
+      return (scheme_null);
     }
   return (scheme_make_pair (scheme_make_integer (fd[0]), scheme_make_integer (fd[1])));
 }
@@ -748,7 +801,9 @@ posix_gettimeofday (int argc, Scheme_Object *argv[])
   SCHEME_ASSERT ((argc == 0), "posix-gettimeofday: wrong number of args");
   if (gettimeofday (&tv, NULL) != 0)
     {
-      scheme_signal_error ("posix-gettimeofday: could not get time");
+      /* scheme_signal_error ("posix-gettimeofday: could not get time"); */
+      posix_errno_value = errno;
+      return (scheme_null);
     }
   return (scheme_make_pair (scheme_make_integer (tv.tv_sec), scheme_make_integer (tv.tv_usec)));
 }
@@ -761,7 +816,9 @@ posix_getrusage (int argc, Scheme_Object *argv[])
   SCHEME_ASSERT ((argc == 0), "posix-getrusage: wrong number of args");
   if (getrusage (RUSAGE_SELF, &ru) != 0)
     {
-      scheme_signal_error ("posix-getrusage: could not get time");
+      /* scheme_signal_error ("posix-getrusage: could not get time"); */
+      posix_errno_value = errno;
+      return (scheme_null);
     }
   return (scheme_make_pair(
 		scheme_make_pair (scheme_make_integer (ru.ru_utime.tv_sec), 
@@ -785,7 +842,8 @@ posix_mkfifo (int argc, Scheme_Object *argv[])
   fd = mkfifo (path, mode);
   if (fd == -1)
     {
-      scheme_signal_error ("posix-mkfifo: could not make named pipe: %s", path);
+      /* scheme_signal_error ("posix-mkfifo: could not make named pipe: %s", path); */
+      posix_errno_value = errno;
     }
   return (scheme_make_integer (fd));
 }

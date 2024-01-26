@@ -1,7 +1,7 @@
 INC=-I..
 LIB=-L..
-CC=gcc
-CFLAGS=$(INC) -DGC_THREADS -Os
+CC=gcc -flto
+CFLAGS=$(INC) -DGC_THREADS -O3 -fomit-frame-pointer
 
 OBJS = posix_file.o posix_proc.o
 

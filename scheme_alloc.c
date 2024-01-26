@@ -77,7 +77,11 @@ scheme_strdup (char *str)
 {
   char *new;
 
+#ifdef NO_GC
   new = scheme_malloc ((strlen (str) + 1) * sizeof (char));
   strcpy (new, str);
+#else
+  new = GC_strndup (str, (strlen (str) + 1) * sizeof (char));
+#endif
   return (new);
 }

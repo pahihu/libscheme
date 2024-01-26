@@ -157,7 +157,7 @@ scheme_make_instance (Scheme_Object *type, int num_fields)
   inst = scheme_alloc_object ();
   SCHEME_TYPE (inst) = type;
   SCHEME_VEC_SIZE (inst) = num_fields;
-  SCHEME_VEC_ELS (inst) = (Scheme_Object **) scheme_malloc (sizeof (Scheme_Object*));
+  SCHEME_VEC_ELS (inst) = (Scheme_Object **) scheme_malloc (num_fields * sizeof (Scheme_Object*));
   return (inst);
 }
 

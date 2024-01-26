@@ -186,6 +186,7 @@ char *scheme_strdup (char *str);
 
 /* garbage collected heap interface */
 extern void *GC_malloc (size_t size_in_bytes);
+extern char *GC_strndup (const char *str, size_t size_in_bytes);
 extern int GC_expand_hp (int num_4k_blocks);
 
 /* hash table interface */
@@ -290,6 +291,7 @@ void scheme_init_number (Scheme_Env *env);
 void scheme_init_eval (Scheme_Env *env);
 void scheme_init_promise (Scheme_Env *env);
 void scheme_init_struct (Scheme_Env *env);
+void init_user (Scheme_Env *env);
 
 /* misc */
 int scheme_eq (Scheme_Object *obj1, Scheme_Object *obj2);
