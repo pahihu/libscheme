@@ -25,7 +25,7 @@
 #include "scheme.h"
 #include <ctype.h>
 
-#define GLOBAL_TABLE_SIZE 100313
+#define GLOBAL_TABLE_SIZE 131071
 #define MAX_SYMBOL_SIZE 1023
 
 /* externs */

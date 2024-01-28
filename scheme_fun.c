@@ -254,18 +254,10 @@ Scheme_Object *
 scheme_apply_to_list (Scheme_Object *rator, Scheme_Object *rands)
 {
   int num_rands, i;
-  Scheme_Object *fix_rands_vec[SCHEME_MAX_ARGS];
   Scheme_Object **rands_vec;
 
   num_rands = scheme_list_length (rands);
-  if (num_rands > SCHEME_MAX_ARGS)
-    {
-      rands_vec = (Scheme_Object **) GC_malloc (num_rands * sizeof (Scheme_Object *));
-    }
-  else
-    {
-      rands_vec = &fix_rands_vec[0];
-    }
+  rands_vec = (Scheme_Object **) alloca (num_rands * sizeof (Scheme_Object *));
   for ( i=0 ; i<num_rands ; ++i )
     {
       rands_vec[i] = SCHEME_CAR (rands);
@@ -310,7 +302,6 @@ static Scheme_Object *
 apply (int argc, Scheme_Object *argv[])
 {
   Scheme_Object *rands, *rands_last, *pair;
-  Scheme_Object *fix_rand_vec[SCHEME_MAX_ARGS];
   Scheme_Object **rand_vec;
   int i, num_rands;
 
@@ -340,14 +331,7 @@ apply (int argc, Scheme_Object *argv[])
       SCHEME_CDR (rands_last) = argv[i];
     }
   num_rands = scheme_list_length (rands);
-  if (num_rands > SCHEME_MAX_ARGS)
-    {
-      rand_vec = (Scheme_Object **) GC_malloc (num_rands * sizeof (Scheme_Object *));
-    }
-  else
-    {
-      rand_vec = &fix_rand_vec[0];
-    }
+  rand_vec = (Scheme_Object **) alloca (num_rands * sizeof (Scheme_Object *));
   for ( i=0 ; i<num_rands ; ++i )
     {
       rand_vec[i] = SCHEME_CAR (rands);

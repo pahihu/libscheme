@@ -67,7 +67,6 @@ static Scheme_Object *
 scheme_eval_combination (Scheme_Object *comb, Scheme_Env *env)
 {
   Scheme_Object *rator, *type, *rands;
-  Scheme_Object *fix_evaled_rands[SCHEME_MAX_ARGS];
   Scheme_Object **evaled_rands;
   Scheme_Object *rand, *fun, *form;
   int num_rands, i;
@@ -89,14 +88,7 @@ scheme_eval_combination (Scheme_Object *comb, Scheme_Env *env)
     {
       rands = SCHEME_CDR (comb);
       num_rands = scheme_list_length (rands);
-      if (num_rands > SCHEME_MAX_ARGS)
-        {
-          evaled_rands = (Scheme_Object **) GC_malloc (num_rands * sizeof (Scheme_Object *)); 
-        }
-      else
-        {
-          evaled_rands = &fix_evaled_rands[0];
-        }
+      evaled_rands = (Scheme_Object **) alloca (num_rands * sizeof (Scheme_Object *));
       i = 0;
       while (rands != scheme_null)
 	{

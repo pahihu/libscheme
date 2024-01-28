@@ -384,7 +384,7 @@ scheme_make_file_output_port (FILE *fp)
   Scheme_Object *port;
 
   port = scheme_alloc_object ();
-  SCHEME_TYPE(port) = scheme_output_port_type;
+  SCHEME_TYPE (port) = scheme_output_port_type;
   SCHEME_PTR_VAL(port) = 
     scheme_make_output_port (scheme_file_output_port_type,
 			     fp,

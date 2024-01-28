@@ -112,6 +112,7 @@ scheme_make_null (void)
 
   null = scheme_alloc_object ();
   SCHEME_TYPE (null) = scheme_null_type;
+  SCHEME_TYPE (null) = scheme_null_type;
   return (null);
 }
 
@@ -121,7 +122,7 @@ scheme_make_pair (Scheme_Object *car, Scheme_Object *cdr)
   Scheme_Object *cons;
 
   cons = scheme_alloc_object ();
-  SCHEME_TYPE(cons) = scheme_pair_type;
+  SCHEME_TYPE (cons) = scheme_pair_type;
   SCHEME_CAR(cons) = car;
   SCHEME_CDR(cons) = cdr;
   return (cons);

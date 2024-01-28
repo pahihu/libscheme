@@ -41,7 +41,7 @@ scheme_make_type (char *name)
   Scheme_Object *type;
 
   type = scheme_alloc_object ();
-  SCHEME_TYPE(type) = scheme_type_type;
+  SCHEME_TYPE (type) = scheme_type_type;
   SCHEME_STR_VAL(type) = scheme_strdup (name);
   return (type);
 }

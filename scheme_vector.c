@@ -65,7 +65,7 @@ scheme_make_vector (int size, Scheme_Object *fill)
   int i;
 
   vec = scheme_alloc_object ();
-  SCHEME_TYPE(vec) = scheme_vector_type;
+  SCHEME_TYPE (vec) = scheme_vector_type;
   SCHEME_VEC_SIZE(vec) = size;
   SCHEME_VEC_ELS(vec) = (Scheme_Object**)scheme_malloc(sizeof(Scheme_Object*)*size);
   for ( i=0 ; i<size ; ++i )
