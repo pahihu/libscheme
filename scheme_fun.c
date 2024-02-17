@@ -302,11 +302,15 @@ static Scheme_Object *
 apply (int argc, Scheme_Object *argv[])
 {
   Scheme_Object *rands, *rands_last, *pair;
-  Scheme_Object **rand_vec;
+  Scheme_Object **rand_vec, *fun;
   int i, num_rands;
 
   SCHEME_ASSERT ((argc >= 2), "apply: two argument version only");
-  SCHEME_ASSERT (SCHEME_PROCP (argv[0]), "apply: first arg must be a procedure");
+  if (scheme_macro_type == SCHEME_TYPE(argv[0]))
+    fun = (Scheme_Object *) SCHEME_PTR_VAL(argv[0]);
+  else
+    fun = argv[0];
+  SCHEME_ASSERT (SCHEME_PROCP (fun), "apply: first arg must be a procedure");
   rands = rands_last = scheme_null;
   for ( i=1 ; i<(argc-1) ; ++i )
     {
@@ -337,7 +341,7 @@ apply (int argc, Scheme_Object *argv[])
       rand_vec[i] = SCHEME_CAR (rands);
       rands = SCHEME_CDR (rands);
     }
-  return (scheme_apply (argv[0], num_rands, rand_vec));
+  return (scheme_apply (fun, num_rands, rand_vec));
 }
 
 static Scheme_Object *map_help (Scheme_Object *fun, Scheme_Object *list);

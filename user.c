@@ -28,13 +28,17 @@
 static Scheme_Object *minroot (int argc, Scheme_Object *argv[]);
 static Scheme_Object *sq (int argc, Scheme_Object *argv[]);
 static Scheme_Object *mag (int argc, Scheme_Object *argv[]);
+static Scheme_Object *macro_p (int argc, Scheme_Object *argv[]);
+static Scheme_Object *bound_p (int argc, Scheme_Object *argv[]);
 
 void
 init_user(Scheme_Env *env)
 {
   scheme_add_global ("$minroot", scheme_make_prim (minroot), env);
-  scheme_add_global ("sq", scheme_make_prim (sq), env);
+  scheme_add_global ("$sq", scheme_make_prim (sq), env);
   scheme_add_global ("$mag", scheme_make_prim (mag), env);
+  scheme_add_global ("macro?", scheme_make_prim (macro_p), env);
+  scheme_add_global ("bound?", scheme_make_prim (bound_p), env);
 }
 
 static Scheme_Object *
@@ -89,3 +93,19 @@ mag (int argc, Scheme_Object *argv[])
   return (scheme_make_double (sqrt(a * a + b * b + c * c)));
 }
 
+static Scheme_Object *
+macro_p (int argc, Scheme_Object *argv[])
+{
+  SCHEME_ASSERT ((argc == 1), "macro?: wrong number of args");
+  return (scheme_macro_type == SCHEME_TYPE(argv[0]) ? scheme_true : scheme_false);
+}
+
+static Scheme_Object *
+bound_p (int argc, Scheme_Object *argv[])
+{
+  Scheme_Object *val;
+
+  SCHEME_ASSERT ((argc == 1), "bound?: wrong number of args");
+  SCHEME_ASSERT (SCHEME_SYMBOLP(argv[0]), "bound?: first arg must be a symbol");
+  return (scheme_lookup_value (argv[0], scheme_env) ? scheme_true : scheme_false);
+}
